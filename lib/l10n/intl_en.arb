@@ -1,0 +1,16 @@
+{
+  "app_name": "PTO uploader",
+  "snack_no_connection": "No connection",
+  "snack_back_connection": "online",
+  "snack_unstable_connection": "Unstable_connection",  "today": "Сегодня",
+  "tomorrow": "Завтра",
+  "yesterday": "Вчера",
+  "Sunday": "Воскресенье",
+  "Monday": "Понедельник",
+  "Tuesday": "Вторник",
+  "Wednesday": "Среда",
+  "Thursday": "Четверг",
+  "Friday": "Пятница",
+  "Saturday": "Суббота",
+  "item_header": "Инфо"
+}
