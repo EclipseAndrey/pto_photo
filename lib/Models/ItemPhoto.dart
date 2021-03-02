@@ -4,6 +4,7 @@ import 'package:flutter_exif_plugin/flutter_exif_plugin.dart';
 import 'package:gallery_saver/gallery_saver.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+
 // import 'package:flutter_exif_plugin/flutter_exif_plugin.dart';
 import 'dart:typed_data';
 
@@ -20,10 +21,12 @@ class ItemPhoto {
   bool _initLocation;
   DateTime date;
   String address;
-  String markerId ;
-  GoogleMapController controller;
+  String markerId;
 
-  ItemPhoto(this.file, {this.latLongFirst, this.latLongUser}){
+  GoogleMapController controller;
+  Set<Marker> markers;
+
+  ItemPhoto(this.file, {this.latLongFirst, this.latLongUser}) {
     setData = false;
     _initLocation = false;
     date = DateTime.now();
@@ -32,11 +35,16 @@ class ItemPhoto {
 
   File get fileOut => _fileOut;
 
-
-  updateData()async{
-    Uint8List data  = await file.readAsBytes();
+  updateData() async {
+    Uint8List data = await file.readAsBytes();
     FlutterExif exif = FlutterExif.fromPath(file.path);
-    await exif.setLatLong( ((latLongUser == null)?(latLongFirst.latitude):(latLongUser.latitude)),((latLongUser == null)?(latLongFirst.longitude):(latLongUser.longitude)));
+    await exif.setLatLong(
+        ((latLongUser == null)
+            ? (latLongFirst.latitude)
+            : (latLongUser.latitude)),
+        ((latLongUser == null)
+            ? (latLongFirst.longitude)
+            : (latLongUser.longitude)));
     await exif.saveAttributes();
     _fileOut = File.fromRawPath(data);
     GallerySaver.saveImage(
@@ -47,11 +55,16 @@ class ItemPhoto {
   set latLongU(LatLng latLng) {
     latLongUser = latLng;
     markerId = "id-${Random().nextInt(100)}";
+    markers = {
+      Marker(
+          markerId: MarkerId(markerId.toString()),
+          position: latLongUser == null ? latLongFirst : latLongUser,
+          draggable: false,
+          onTap: () {})
+    };
   }
 
-
-
-  Future<bool>initLocation()async{
+  Future<bool> initLocation() async {
     Location location = new Location();
 
     bool _serviceEnabled;
@@ -77,23 +90,30 @@ class ItemPhoto {
     print("Location" + _locationData.latitude.toString());
     latLongFirst = LatLng(_locationData.latitude, _locationData.longitude);
     _initLocation = true;
-    print("LOCATION " + _locationData.latitude.toString() + " " + _locationData.longitude.toString());
+    print("LOCATION " +
+        _locationData.latitude.toString() +
+        " " +
+        _locationData.longitude.toString());
 
     YandexGeocoder geocoder = YandexGeocoder(apiKey: ya_key);
     GeocodeResponse geocodeFromPoint = await geocoder.getGeocode(GeocodeRequest(
-      geocode: PointGeocode(latitude: _locationData.latitude, longitude: _locationData.longitude),
+      geocode: PointGeocode(
+          latitude: _locationData.latitude, longitude: _locationData.longitude),
       lang: Lang.ru,
     ));
 
-    print("YANDEX geocoder ==========================="+geocodeFromPoint.response.toString());
+    print("YANDEX geocoder ===========================" +
+        geocodeFromPoint.response.toString());
     address = geocodeFromPoint.firstAddress.formatted;
 
-
+    markers = {
+      Marker(
+          markerId: MarkerId(markerId.toString()),
+          position: latLongUser == null ? latLongFirst : latLongUser,
+          draggable: false,
+          onTap: () {})
+    };
 
     return true;
-
   }
-
-
-
 }

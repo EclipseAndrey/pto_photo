@@ -38,6 +38,7 @@ class MyApp extends StatelessWidget {
       initialRoute: Routes.initial,
       routes: <String, WidgetBuilder>{
         Routes.initial: (BuildContext context) => Login(),
+        Routes.home: (BuildContext context) => Home(),
       },
     );
   }

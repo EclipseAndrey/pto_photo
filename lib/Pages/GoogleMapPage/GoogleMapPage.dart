@@ -19,12 +19,13 @@ class GoogleMapPage extends StatefulWidget {
 }
 
 class _GoogleMapPageState extends State<GoogleMapPage> {
+
   LatLng _currentPosition ;
   Set<Marker> _markers = {};
-
   int count = 0;
-  _onMapCreated(GoogleMapController controller) {
 
+
+  _onMapCreated(GoogleMapController controller) {
     print("User init ${widget.center.latLongUser.toString()} ++ ${(widget.center.latLongUser == null?widget.center.latLongFirst:widget.center.latLongUser).toString()}");
     _markers = {};
       _markers.add(

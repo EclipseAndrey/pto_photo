@@ -42,10 +42,8 @@ class _LoginState extends State<Login> {
                 SizedBox(height: 18,),
                 fieldPass(),
                 SizedBox(height: 18,),
-
                 singInb?SizedBox():fieldPass(text: "Повторите пароль"),
                 SizedBox(height: 18,),
-
                 _buttonSave(),
                 haveAccount()
               ],
@@ -137,9 +135,7 @@ class _LoginState extends State<Login> {
     return GestureDetector(
       onTap: (){
         singInb = !singInb;
-        setState(() {
-
-        });
+        setState(() {});
       },
       behavior: HitTestBehavior.deferToChild,
       child: Text(singInb?"Нет аккаунта?":"Уже есть аккаунт?",  style: TextStyle(color: cBlue, fontSize: 14, fontFamily: fontFamily,fontWeight: FontWeight.w600),),

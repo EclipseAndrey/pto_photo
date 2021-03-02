@@ -7,6 +7,7 @@ import 'package:pto_photo/Pages/GoogleMapPage/GoogleMapPage.dart';
 import 'package:pto_photo/Style.dart';
 import 'package:pto_photo/generated/l10n.dart';
 import 'package:pto_photo/Models/ItemPhoto.dart';
+import 'Controller.dart';
 import 'button_add.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:io';
@@ -19,27 +20,21 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  List<ItemPhoto> list = [];
+  HomeController controller;
 
   int _counter = 0;
 
-  double h = 20;
-  double H;
+  double h;
 
-  initSize(){
-    double pixelh = 60 / MediaQuery.of(context).devicePixelRatio ;
-    print("pixelh "+pixelh.toString());
-    h=pixelh;
+  initSize() {
+    h = 60 / MediaQuery.of(context).devicePixelRatio;
   }
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-
+    controller = HomeController();
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -63,45 +58,25 @@ class _HomeState extends State<Home> {
           )
         ],
       ),
-      body: Container(
-        width: MediaQuery.of(context).size.width,
-        child: SingleChildScrollView(
+      body: SingleChildScrollView(
+        child: Container(
+          width: MediaQuery.of(context).size.width,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              SizedBox(
-                height: 12,
-              ),
+              SizedBox(height: 12),
               buttonAdd(context, onPress: () async {
-                File newFile = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => Camera(
-                      // imageMask: Container(
-                      //     height: MediaQuery.of(context).size.height,
-                      //     width: MediaQuery.of(context).size.width,
-                      //     child: Image.asset(
-                      //       'assets/images/mask.png',
-                      //       fit: BoxFit.fitWidth,
-                      //     )),
-                      imageMask: mask(),
-                      mode: CameraMode.fullscreen,
-                      enableCameraChange: false,
-                    ),
-                  ),
-                );
-                if (newFile != null) {
-                  ItemPhoto step = ItemPhoto(newFile);
-                  if (await step.initLocation()) {
-                    list.add(step);
-                    setState(() {});
-                    await list[list.length - 1].updateData();
-                  } else {
-                    print("NO LOCATION PERMISSION");
-                  }
-                }
+                controller.addPhoto(context, mask());
               }),
-              _generatorItems()
+              StreamBuilder<List<ItemPhoto>>(
+                  stream: controller.stream,
+                  builder: (context, data) {
+                    if (data.hasData) {
+                      return _generatorItems(data.data);
+                    } else {
+                      return SizedBox();
+                    }
+                  }),
             ],
           ),
         ),
@@ -109,27 +84,12 @@ class _HomeState extends State<Home> {
     );
   }
 
-  _generatorItems() {
-    String _lnText(LatLng position) {
-      return position.latitude.toString() +
-          "\n" +
-          position.longitude.toString();
-    }
-
+  _generatorItems(List<ItemPhoto> list) {
     if (list.length == 0) {
       return SizedBox();
     } else {
       return Column(
         children: List.generate(list.length, (index) {
-
-        _onMapCreated(GoogleMapController controllerA) {list[index].controller = controllerA;}
-          Set<Marker> _marker = {
-            Marker(
-                markerId: MarkerId(list[index].markerId+_counter.toString()),
-                position: list[index].latLongUser == null? list[index].latLongFirst:list[index].latLongUser,
-                draggable: false,
-                onTap: () {})
-          };
           return Padding(
             padding: const EdgeInsets.all(12.0),
             child: Container(
@@ -155,19 +115,6 @@ class _HomeState extends State<Home> {
                               list[index].file,
                               fit: BoxFit.cover,
                             ),
-                            // child: Container(
-                            //   child: Column(
-                            //     children: [
-                            //       Container(
-                            //         width: MediaQuery.of(context).size.width,
-                            //         height: MediaQuery.of(context).size.height/2 - h/2,
-                            //
-                            //       ),
-                            //       Row(),
-                            //       Container(),
-                            //     ],
-                            //   ),
-                            // ),
                           ),
                         ),
                         Container(
@@ -183,81 +130,27 @@ class _HomeState extends State<Home> {
                     SizedBox(
                       height: 12,
                     ),
-                    GestureDetector(
-                      behavior: HitTestBehavior.deferToChild,
-                      // onTap: () async {
-                      //   //todo select custom point
-                      //   print("tap");
-                      //   LatLng result = await Navigator.push(
-                      //       context,
-                      //       MaterialPageRoute(
-                      //           builder: (context) =>
-                      //               GoogleMapPage(list[index])));
-                      //   print("MAP PAGE RESULT " + result.toString());
-                      //   if (result != null) {
-                      //     print(result);
-                      //     list[index].latLongUser = result;
-                      //     _marker = {
-                      //       Marker(
-                      //           markerId:
-                      //               MarkerId("id-${Random().nextInt(100)}"),
-                      //           position: list[index].latLongUser ??
-                      //               list[index].latLongFirst,
-                      //           draggable: false,
-                      //           onTap: () {})
-                      //     };
-                      //   }
-                      //   setState(() {});
-                      // },
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.vertical(
-                            bottom: Radius.circular(borderRadius)),
-                        child: Container(
-                          height: 200,
-                          width: MediaQuery.of(context).size.width,
-                          child: GoogleMap(
-                            onTap: (info) async {
-                              print("tap");
-                              LatLng result = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          GoogleMapPage(list[index])));
-                              print("MAP PAGE RESULT " + result.toString());
-                              if (result != null) {
-                                _counter ++;
-                                print(_counter);
-                                list[index].latLongU = result;
-                                _marker = {
-                                  Marker(
-                                      markerId: MarkerId(
-                                          list[index].markerId),
-                                      position: list[index].latLongUser,
-                                      draggable: false,
-                                      onTap: () {})
-                                };
-
-                                setState(() {});
-
-                                print("USER VALUE "+list[index].latLongUser.toString());
-                              }
-                            },
-                            // onMapCreated: _onMapCreated,
-                            markers: _marker,
-                            myLocationButtonEnabled: false,
-                            myLocationEnabled: false,
-                            mapToolbarEnabled: false,
-                            scrollGesturesEnabled: false,
-                            zoomGesturesEnabled: false,
-                            zoomControlsEnabled: false,
-
-
-                            // markers: _markers,
-                            initialCameraPosition: CameraPosition(
-                              target: list[index].latLongUser ??
-                                  list[index].latLongFirst,
-                              zoom: 15,
-                            ),
+                    ClipRRect(
+                      borderRadius: BorderRadius.vertical(
+                          bottom: Radius.circular(borderRadius)),
+                      child: Container(
+                        height: 200,
+                        width: MediaQuery.of(context).size.width,
+                        child: GoogleMap(
+                          onTap: (info) async {
+                            controller.updatePosition(context, index);
+                          },
+                          markers: list[index].markers,
+                          myLocationButtonEnabled: false,
+                          myLocationEnabled: false,
+                          mapToolbarEnabled: false,
+                          scrollGesturesEnabled: false,
+                          zoomGesturesEnabled: false,
+                          zoomControlsEnabled: false,
+                          initialCameraPosition: CameraPosition(
+                            target: list[index].latLongUser ??
+                                list[index].latLongFirst,
+                            zoom: 15,
                           ),
                         ),
                       ),
@@ -297,10 +190,6 @@ class _HomeState extends State<Home> {
             ),
           ],
         ),
-        // Text("Ш: " + ((item.latLongUser == null)?item.latLongFirst.latitude.toString():item.latLongUser.latitude.toString()),
-        //   style: TextStyle(color: cMainBlack. withOpacity(0.9), fontWeight: FontWeight.w400 , fontSize: 14, fontFamily: fontFamily),),
-        // Text("Д: " + ((item.latLongUser == null)?item.latLongFirst.longitude.toString():item.latLongUser.longitude.toString()),
-        //   style: TextStyle(color: cMainBlack. withOpacity(0.9), fontWeight: FontWeight.w400 , fontSize: 14, fontFamily: fontFamily),),
         Text(
           item.address ?? "Ожидание аадреса",
           style: TextStyle(
@@ -313,9 +202,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-
-
-  Widget mask (){
+  Widget mask() {
     return Container(
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height,
@@ -323,31 +210,30 @@ class _HomeState extends State<Home> {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-
           Container(
             decoration: BoxDecoration(
-                border: Border.symmetric(vertical: BorderSide(color: Colors.white, width: 2)),
-               // borderRadius: BorderRadius.all(Radius.circular(6))
+              border: Border.symmetric(
+                  vertical: BorderSide(color: Colors.white, width: 2)),
+              // borderRadius: BorderRadius.all(Radius.circular(6))
             ),
-            width: MediaQuery.of(context).size.width - (MediaQuery.of(context).size.width/4),
-            height: (MediaQuery.of(context).size.width - (MediaQuery.of(context).size.width/4))*0.8 ,
+            width: MediaQuery.of(context).size.width -
+                (MediaQuery.of(context).size.width / 4),
+            height: (MediaQuery.of(context).size.width -
+                    (MediaQuery.of(context).size.width / 4)) *
+                0.8,
             child: Center(
               child: Padding(
-                padding:  EdgeInsets.only(top: h*3.0),
+                padding: EdgeInsets.only(top: h * 3.0),
                 child: Container(
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.red, width: 2),
-                    borderRadius: BorderRadius.all(Radius.circular(3))
-                  ),
-                  width: h*3.5,
+                      border: Border.all(color: Colors.red, width: 2),
+                      borderRadius: BorderRadius.all(Radius.circular(3))),
+                  width: h * 3.5,
                   height: h,
-
-
                 ),
               ),
             ),
           ),
-
         ],
       ),
     );
