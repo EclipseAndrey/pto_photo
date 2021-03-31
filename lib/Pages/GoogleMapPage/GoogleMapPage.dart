@@ -12,8 +12,9 @@ const String key = "AIzaSyAEBsJIE-UAlDTLpYBKbbshsew12e_vquw";
 class GoogleMapPage extends StatefulWidget {
 
   ItemPhoto center;
+  bool chk;
 
-  GoogleMapPage(this.center);
+  GoogleMapPage(this.center, {this.chk});
   @override
   _GoogleMapPageState createState() => _GoogleMapPageState();
 }
@@ -47,29 +48,34 @@ class _GoogleMapPageState extends State<GoogleMapPage> {
   }
 
   bool check(LatLng center, LatLng point){
-    geo.LatLng _center = geo.LatLng(center.latitude,center.longitude);
-    geo.LatLng _point = geo.LatLng(point.latitude,point.longitude);
+    if(widget.chk??true) {
+      geo.LatLng _center = geo.LatLng(center.latitude, center.longitude);
+      geo.LatLng _point = geo.LatLng(point.latitude, point.longitude);
 
-    geo.Geodesy geodesy = geo.Geodesy();
-    num distance = geodesy.distanceBetweenTwoGeoPoints(_center, _point);
+      geo.Geodesy geodesy = geo.Geodesy();
+      num distance = geodesy.distanceBetweenTwoGeoPoints(_center, _point);
 
-    print(distance);
-    if(distance > 200){
-      print('false');
-      Fluttertoast.showToast(
-          msg: "Допустимый радиус - 200м",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.black,
-          textColor: Colors.white,
-          fontSize: 16.0
-      );
+      print(distance);
+      if (distance > 200) {
+        print('false');
+        Fluttertoast.showToast(
+            msg: "Допустимый радиус - 200м",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.black,
+            textColor: Colors.white,
+            fontSize: 16.0
+        );
 
-      return false;
+        return false;
+      } else {
+        _currentPosition = point;
+        print('true');
+        return true;
+      }
     }else{
       _currentPosition = point;
-      print('true');
       return true;
     }
   }

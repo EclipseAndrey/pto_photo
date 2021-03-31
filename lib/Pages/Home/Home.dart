@@ -3,16 +3,19 @@ import 'dart:math';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:pto_photo/Pages/BottomSettings/BottomSettings.dart';
 import 'package:pto_photo/Pages/GoogleMapPage/GoogleMapPage.dart';
 import 'package:pto_photo/Style.dart';
 import 'package:pto_photo/generated/l10n.dart';
 import 'package:pto_photo/Models/ItemPhoto.dart';
+import 'package:pto_photo/utils/app_keys.dart';
 import 'Controller.dart';
 import 'button_add.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:io';
 import 'package:camera_camera/page/camera.dart';
 import 'package:pto_photo/utils/time_formatter.dart';
+import 'dart:math' as math;
 
 class Home extends StatefulWidget {
   @override
@@ -33,7 +36,7 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    controller = HomeController();
+    controller = HomeController(context)..initDefaultPosition();
   }
 
   @override
@@ -48,12 +51,19 @@ class _HomeState extends State<Home> {
               color: Colors.black, fontSize: 18, fontWeight: FontWeight.w700),
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 18.0),
-            child: Icon(
-              Icons.arrow_upward,
-              color: Colors.blueAccent,
-              size: 24,
+          GestureDetector(
+            behavior: HitTestBehavior.deferToChild,
+            onTap: ()async{
+              await showSettings(context);
+              controller.initDefaultPosition();
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(right: 18.0),
+              child: Icon(
+                Icons.settings,
+                color: Colors.blueAccent,
+                size: 24,
+              ),
             ),
           )
         ],
@@ -137,9 +147,9 @@ class _HomeState extends State<Home> {
                         height: 200,
                         width: MediaQuery.of(context).size.width,
                         child: GoogleMap(
-                          onTap: (info) async {
-                            controller.updatePosition(context, index);
-                          },
+                          // onTap: (info) async {
+                          //   controller.updatePosition(context, index);
+                          // },
                           markers: list[index].markers,
                           myLocationButtonEnabled: false,
                           myLocationEnabled: false,
@@ -203,39 +213,67 @@ class _HomeState extends State<Home> {
   }
 
   Widget mask() {
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              border: Border.symmetric(
-                  vertical: BorderSide(color: Colors.white, width: 2)),
-              // borderRadius: BorderRadius.all(Radius.circular(6))
-            ),
-            width: MediaQuery.of(context).size.width -
-                (MediaQuery.of(context).size.width / 4),
-            height: (MediaQuery.of(context).size.width -
-                    (MediaQuery.of(context).size.width / 4)) *
-                0.8,
-            child: Center(
-              child: Padding(
-                padding: EdgeInsets.only(top: h * 3.0),
-                child: Container(
+    return OrientationBuilder(
+      builder: (context, orientation) {
+        if(orientation == Orientation.portrait) {
+          return Container(
+            width: MediaQuery
+                .of(context)
+                .size
+                .width,
+            height: MediaQuery
+                .of(context)
+                .size
+                .height,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
                   decoration: BoxDecoration(
-                      border: Border.all(color: Colors.red, width: 2),
-                      borderRadius: BorderRadius.all(Radius.circular(3))),
-                  width: h * 3.5,
-                  height: h,
+                    border: Border.symmetric(
+                        vertical: BorderSide(color: Colors.white, width: 2)),
+                    // borderRadius: BorderRadius.all(Radius.circular(6))
+                  ),
+                  width: MediaQuery
+                      .of(context)
+                      .size
+                      .width -
+                      (MediaQuery
+                          .of(context)
+                          .size
+                          .width / 4),
+                  height: (MediaQuery
+                      .of(context)
+                      .size
+                      .width -
+                      (MediaQuery
+                          .of(context)
+                          .size
+                          .width / 4)) *
+                      0.8,
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: h * 3.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                            border: Border.all(color: Colors.red, width: 2),
+                            borderRadius: BorderRadius.all(Radius.circular(3))),
+                        width: h * 3.5,
+                        height: h,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ),
-        ],
-      ),
+          );
+        }else{
+          return Transform.rotate(
+              angle: 90* math.pi / 180 ,
+              child: Container());
+        }
+      }
     );
   }
 }

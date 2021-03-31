@@ -35,7 +35,7 @@ class ItemPhoto {
 
   File get fileOut => _fileOut;
 
-  updateData() async {
+  updateExifData() async {
     Uint8List data = await file.readAsBytes();
     FlutterExif exif = FlutterExif.fromPath(file.path);
     await exif.setLatLong(
@@ -48,9 +48,12 @@ class ItemPhoto {
     await exif.saveAttributes();
     _fileOut = File.fromRawPath(data);
     GallerySaver.saveImage(
-      _fileOut.path,
+      file.path,
     ).then((value) => {print("file save " + value.toString())});
   }
+
+
+
 
   set latLongU(LatLng latLng) {
     latLongUser = latLng;
@@ -65,40 +68,12 @@ class ItemPhoto {
   }
 
   Future<bool> initLocation() async {
-    Location location = new Location();
 
-    bool _serviceEnabled;
-    PermissionStatus _permissionGranted;
-    LocationData _locationData;
-
-    _serviceEnabled = await location.serviceEnabled();
-    if (!_serviceEnabled) {
-      _serviceEnabled = await location.requestService();
-      if (!_serviceEnabled) {
-        return false;
-      }
-    }
-
-    _permissionGranted = await location.hasPermission();
-    if (_permissionGranted == PermissionStatus.denied) {
-      _permissionGranted = await location.requestPermission();
-      if (_permissionGranted != PermissionStatus.granted) {
-        return false;
-      }
-    }
-    _locationData = await location.getLocation();
-    print("Location" + _locationData.latitude.toString());
-    latLongFirst = LatLng(_locationData.latitude, _locationData.longitude);
-    _initLocation = true;
-    print("LOCATION " +
-        _locationData.latitude.toString() +
-        " " +
-        _locationData.longitude.toString());
 
     YandexGeocoder geocoder = YandexGeocoder(apiKey: ya_key);
     GeocodeResponse geocodeFromPoint = await geocoder.getGeocode(GeocodeRequest(
       geocode: PointGeocode(
-          latitude: _locationData.latitude, longitude: _locationData.longitude),
+          latitude: latLongFirst.latitude, longitude: latLongFirst.longitude),
       lang: Lang.ru,
     ));
 
